@@ -47,14 +47,14 @@ Be aware, that the path will change over time:
 ```
 cd files/
 
-Long Time Supported version:
+# Long Time Supported version:
 wget https://github.com/F5Networks/f5-appsvcs-extension/releases/download/v3.13.2/f5-appsvcs-3.13.2-1.noarch.rpm
 
-Latest version:
+# Latest version:
 wget https://github.com/F5Networks/f5-appsvcs-extension/releases/download/v3.19.0/f5-appsvcs-3.19.0-4.noarch.rpm
 ```
 
-Please adapt the AS3Version variable at the playbook/AS3_install.yaml playbook.
+Please adapt the AS3Version variable at the AS3_install.yaml playbook.
 
 Next you can install the package on the target BIG-IP:
 
