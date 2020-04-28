@@ -1,0 +1,25 @@
+---
+- name: BIG-IP GUI setup over tmsh 
+  hosts: "{{ target }}"
+  gather_facts: false
+  connection: local
+  vars:
+    provider:
+      server: "{{private_ip}}"
+      user: "{{ansible_user}}"
+      password: "{{ansible_ssh_pass}}"
+      server_port: "8443"
+      validate_certs: "no"
+    gui_idle_timeout: "3600"
+    record_per_screen: "100"
+
+  tasks:
+
+  - name: set GUI_idle_timeout to {{ gui_idle_timeout}} and records_per_screen to {{ record_per_screen }}
+    bigip_command:
+      provider: "{{provider}}"
+      commands:
+      - modify sys httpd auth-pam-idle-timeout {{ gui_idle_timeout }}
+      - modify /sys db ui.system.preferences.recordsperscreen value {{ record_per_screen }}
+...    
+

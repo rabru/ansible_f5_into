@@ -9,7 +9,7 @@ git clone https://github.com/rabru/ansible_f5AT.git
 The inventory is already preconfigured here:
 
 ```
-cat /net.../???
+cat ~/networking-workshop/lab_inventory/hosts
 ```
 
 You can validate it with:
@@ -21,13 +21,13 @@ ansible-inventory --list
 To deploy a playbook, run the following command line:
 
 ```
-ansible-playbook <playbook filename> -e target=f5 -e status=present
+ansible-playbook <playbook filename> -e target=f5 -e state=present
 ```
 
 To remove the deployment you need to change the state to absent:
 
 ```
-ansible-playbook <playbook filename> -e target=f5 -e status=absent
+ansible-playbook <playbook filename> -e target=f5 -e state=absent
 ```
 
 Since the AS3 deployments are deployed in seperate partitions, it is necessary to remove all Application, befor you can start the next one. This is, because we have only one external IP address, which can be configured only in one partition.

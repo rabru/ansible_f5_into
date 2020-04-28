@@ -1,0 +1,83 @@
+#####################################################
+# Deployment wit the default HTTPS offload template #
+#####################################################
+#
+#vars:
+#  - app_name: <name of the application>
+#  - device_name: <hostname of the target BIG-IP>
+#  - certificate: <name of the key and certificate used in the clientssl profile>
+#  - vip: <virtual server ip address>
+#  - members:
+#    -
+#      ip: <pool member ip>
+#      port: <pool member port>
+#
+---
+  - hosts: "{{ target }}"
+    gather_facts: False
+    connection: local
+    roles:
+      - AS3
+    vars:
+      provider:
+        server: "{{private_ip}}"
+        user: "{{ansible_user}}"
+        password: "{{ansible_ssh_pass}}"
+        server_port: "8443"
+        validate_certs: "no"
+      schemaVersion: "3.9.0"
+      tenant: "AS3_MultiApp"
+      id: "Unic22-234"
+      remark: "multiApp collection"
+      apps:
+        - name: "as3_https_demo1"
+          template: "HTTPS_offload"
+          vip: "10.128.10.21"
+          member_port: 80
+          member_addr:
+            - "10.10.10.221"
+            - "10.10.10.222"
+            - "10.10.10.223"
+#            - "10.10.10.224"
+        - name: "as3_https_demo2"
+          template: "HTTPS_offload"
+          vip: "10.128.10.22"
+          member_port: 80
+          member_addr:
+            - "10.10.10.225"
+            - "10.10.10.226"
+            - "10.10.10.227"
+        - name: "as3_http_demo"
+          template: "HTTP"
+          vip: "10.128.10.23"
+          member_port: 80
+          member_addr:
+            - "10.10.10.228"
+            - "10.10.10.229"
+        - name: "as3_http_expert"
+          template: "HTTP_expert"
+          vip: "10.128.10.24"
+          monitorPath: "/f5/index.php"
+          slowRampTime: 100
+          minimumMembersActive: 1
+          loadBalancingMode: "round-robin"
+          member:
+            - port: 80
+              connectionLimit: 0
+              priorityGroup: 0
+              adminState: "disable" 
+              addr:
+                - "10.10.10.221"
+                - "10.10.10.222"
+            - port: 80
+              connectionLimit: 10
+              priorityGroup: 1
+              adminState: "enable"
+              addr:
+                - "10.10.10.223"
+                - "10.10.10.224"
+
+
+## don't touch: ##
+      j2template: "multiApp_basic"
+...

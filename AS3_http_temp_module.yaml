@@ -1,0 +1,45 @@
+---
+- name: AS3 http setup 
+  hosts: "{{ target }}"
+  gather_facts: false
+  connection: local
+  vars:
+    provider:
+      server: "{{private_ip}}"
+      user: "{{ansible_user}}"
+      password: "{{ansible_ssh_pass}}"
+      server_port: "8443"
+      validate_certs: "no"
+    rest_port: 8443
+    tenant: "myTenant8081"
+    appName: "httpApp"
+    vip: "{{ private_ip }}"
+    virtual_port: 8081
+    server_list: "{{ groups['webservers'] }}"
+    
+  tasks:
+
+  - debug:
+      var: server_list
+
+# Add or update Application Service
+###################################
+  - name: "Update {{ appName }} of tanent {{ tenant }}"
+    bigip_appsvcs_extension:
+      provider: "{{provider}}"
+      content: "{{ lookup('template', 'http_simple.j2') }}"
+      state: "{{ state }}"
+    when: state == "present"
+
+
+# Remove Application Service
+############################
+  - name: "Remove all Applications of tenant {{ tenant }}"
+    bigip_appsvcs_extension:
+      provider: "{{provider}}"
+      tenants:
+        - "{{ tenant }}" 
+      state: "{{ state }}"
+    when: state == "absent"
+
+...    

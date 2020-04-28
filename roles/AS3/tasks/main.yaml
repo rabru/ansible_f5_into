@@ -1,0 +1,43 @@
+---
+
+# Add or update Application Service
+###################################
+
+- name: Generate App List
+  set_fact:
+    appList: "{{ appList }}{{ lookup('template', 'AS3_multiApp_{{ item.template }}.j2') }},"
+  loop: "{{ apps }}"
+  vars:
+    appList: ""
+  when: state == "present"
+
+#- name: Debug appList
+#  debug:
+#    msg: "{{ appList }}"
+#  when: state == "present"
+
+#- name: Debug Result
+#  debug:
+#    msg: "{{ lookup('template', 'AS3_{{ j2template }}.j2')| to_json }}"
+#  when: state == "present"
+
+- name: "Create or modify Application"
+  bigip_appsvcs_extension:
+    provider: "{{provider}}"
+    content: "{{ lookup('template', 'AS3_{{ j2template }}.j2') }}"
+    state: "{{ state }}"
+  when: state == "present"
+
+
+# Remove Application Service
+############################
+
+- name: "Remove all Applications of tenant {{ tenant }}"
+  bigip_appsvcs_extension:
+    provider: "{{provider}}"
+    tenants:
+      - "{{ tenant }}"
+    state: "{{ state }}"
+  when: state == "absent"
+
+...

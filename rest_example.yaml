@@ -1,0 +1,62 @@
+---
+- name: BIG-IP GUI setup over REST 
+  hosts: "{{ target }}"
+  gather_facts: false
+  vars:
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_ssh_pass }}"
+    rest_port: 8443
+    gui_idle_timeout: "1600"
+    records_per_screen: "50"
+
+  tasks:
+
+  - name: get auth token 
+    uri:
+      url: https://{{ private_ip }}:{{ rest_port }}/mgmt/shared/authn/login
+      method: POST
+      user: "{{ username }}"
+      password: "{{ password }}"
+      body: "{
+        \"username\":\"{{username}}\",
+        \"password\":\"{{password}}\",
+        \"loginProviderName\": \"tmos\"
+        }"
+      force_basic_auth: yes
+      status_code: 200
+      body_format: json
+      validate_certs: no
+    register: auth
+    delegate_to: localhost
+
+  - name: set GUI_idle_timeout to {{ gui_idle_timeout }}
+    uri:
+      url: https://{{ private_ip }}:{{ rest_port }}/mgmt/tm/sys/httpd
+      method: PATCH
+      headers:
+        X-F5-Auth-Token: "{{auth.json.token.token}}"
+      body: "{
+      \"authPamIdleTimeout\": {{ gui_idle_timeout }}
+  }"
+      force_basic_auth: no
+      status_code: 200
+      body_format: json
+      validate_certs: no
+    delegate_to: localhost
+ 
+  - name: set records_per_screen to {{ records_per_screen }}
+    uri:
+      url: https://{{ private_ip }}:{{ rest_port }}/mgmt/tm/sys/db/ui.system.preferences.recordsperscreen
+      method: PATCH
+      headers:
+        X-F5-Auth-Token: "{{auth.json.token.token}}"
+      body: "{
+                  \"value\": {{ records_per_screen }}
+        }"
+      force_basic_auth: no
+      status_code: 200
+      body_format: json
+      validate_certs: no
+    delegate_to: localhost
+...
+

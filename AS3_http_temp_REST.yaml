@@ -1,0 +1,73 @@
+---
+- name: AS3 http setup 
+  hosts: "{{ target }}"
+  gather_facts: false
+  vars:
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_ssh_pass }}"
+    rest_port: 8443
+    tenant: "myTenant"
+    appName: "httpApp"
+    vip: "{{ private_ip }}"
+    virtual_port: 8080
+    server_list: "{{ groups['webservers'] }}"
+    
+  tasks:
+
+  - debug:
+      var: server_list
+
+  - name: get auth token
+    uri:
+      url: "https://{{ private_ip }}:{{ rest_port }}/mgmt/shared/authn/login"
+      method: POST
+      user: "{{ username }}"
+      password: "{{ password }}"
+      body: "{
+                \"username\":\"{{ username }}\",
+                \"password\":\"{{ password }}\",
+               \"loginProviderName\": \"local\"
+        }"
+      force_basic_auth: yes
+      status_code: 200
+      body_format: json
+      validate_certs: no
+    register: auth
+    delegate_to: localhost
+
+
+
+# Add or update Application Service
+###################################
+  - name: "Update {{ appName }} of tanent {{ tenant }}"
+    uri:
+      url: "https://{{ private_ip }}:{{ rest_port }}/mgmt/shared/appsvcs/declare"
+      method: POST
+      headers:
+        X-F5-Auth-Token: "{{auth.json.token.token}}"
+      body: "{{ lookup('template', 'http_simple.j2') }}"
+      force_basic_auth: no
+      status_code: 200,202
+      body_format: json
+      validate_certs: no
+    delegate_to: localhost
+    when: state == "present"
+
+
+# Remove Application Service
+############################
+  - name: "Remove all Applications of tenant {{ tenant }}"
+    uri:
+      url: "https://{{ private_ip }}:{{ rest_port }}/mgmt/shared/appsvcs/declare"
+      method: POST
+      headers:
+        X-F5-Auth-Token: "{{auth.json.token.token}}"
+      body: "{{ lookup('template', 'remove_http_simple.j2') }}"
+      force_basic_auth: no
+      status_code: 200,202
+      body_format: json
+      validate_certs: no
+    delegate_to: localhost
+    when: state == "absent"
+
+...    

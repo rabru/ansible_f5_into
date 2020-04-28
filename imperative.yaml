@@ -1,0 +1,109 @@
+---
+- name: Imperative application deployment 
+  hosts: "{{ target }}"
+  gather_facts: false
+  connection: local
+  vars:
+    provider:
+      server: "{{private_ip}}"
+      user: "{{ansible_user}}"
+      password: "{{ansible_ssh_pass}}"
+      server_port: "8443"
+      validate_certs: "no"
+    app_name: "httpApp"
+
+
+  tasks:
+
+
+  - name: Create HTTP Monitor
+    bigip_monitor_http:
+      provider: "{{provider}}"
+      state: "{{ state }}"
+      receive: "Ansible"
+      interval: 10
+      timeout: 31
+      name: "{{ app_name }}_monitor"
+    when: state == "present"
+
+
+  - name: Create Pool
+    bigip_pool:
+      provider: "{{provider}}"
+      state: "{{ state }}"
+      name: "{{ app_name }}_pool"
+      lb_method: round-robin
+      monitors:
+        - "{{ app_name }}_monitor"
+    when: state == "present"
+
+  - name: Add Pool Members
+    bigip_pool_member:
+      provider: "{{provider}}"
+      state: "{{ state }}"
+      pool: "{{ app_name }}_pool"
+      name: "{{hostvars[item].inventory_hostname}}"
+      host: "{{hostvars[item].private_ip}}"
+      port: "80"
+      preserve_node: "yes"
+    loop: "{{ groups['webservers'] }}"
+    when: state == "present"
+
+
+  - name: Create a HTTPS Virtual Server
+    bigip_virtual_server:
+      provider: "{{provider}}"
+      state: "{{ state }}"
+      description: "HTTPS Virtual Server"
+      name: "{{ app_name }}_https_vip"
+      destination: "{{ private_ip }}"
+      port: "8083"
+      pool: "{{ app_name }}_pool"
+      snat: Automap
+      profiles:
+       - http
+       - name: clientssl
+         context: client-side
+       - oneconnect
+
+  - name: Remove Pool Members
+    bigip_pool_member:
+      provider: "{{provider}}"
+      state: "{{ state }}"
+      pool: "{{ app_name }}_pool"
+      name: "{{hostvars[item].inventory_hostname}}"
+      host: "{{hostvars[item].private_ip}}"
+      port: "80"
+      preserve_node: "yes"
+    loop: "{{ groups['webservers'] }}"
+    when: state == "absent"
+
+  - name: Remove Nodes
+    bigip_node:
+      provider: "{{provider}}"
+      state: "{{ state }}"
+      name: "{{hostvars[item].inventory_hostname}}"
+    loop: "{{ groups['webservers'] }}"
+    when: state == "absent"
+
+  - name: Remove Pool
+    bigip_pool:
+      provider: "{{provider}}"
+      state: "{{ state }}"
+      name: "{{ app_name }}_pool"
+      lb_method: round-robin
+      monitors:
+        - "{{ app_name }}_monitor"
+    when: state == "absent"
+
+  - name: Create HTTP Monitor
+    bigip_monitor_http:
+      provider: "{{provider}}"
+      state: "{{ state }}"
+      receive: "Ansible"
+      interval: 10
+      timeout: 31
+      name: "{{ app_name }}_monitor"
+    when: state == "absent"
+
+...
