@@ -18,6 +18,5 @@
     bigip_lx_package:
       provider: "{{ provider }}"
       package: "files/f5-appsvcs-{{ AS3Version }}.noarch.rpm"
-      state: "{{ state }}" 
 
 ...    
