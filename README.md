@@ -3,7 +3,7 @@
 This repository is built to be used in the [F5 Sandbox environment.](https://clouddocs.f5.com/training/automation-sandbox/) Please deploy the environment and login as student at the Ansible host, to clone this repository:
 
 ```
-git clone https://github.com/rabru/ansible_f5AT.git
+git clone https://github.com/rabru/ansible_f5_intro.git
 ```
 
 The inventory is already preconfigured here:
