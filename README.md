@@ -39,4 +39,26 @@ ansible-playbook <playbook filename> -e target=f5 -e state=absent
 
 Since the AS3 deployments are deployed in separate partitions, it is necessary to remove all Application before you can start the next one. This is, because we have only one external IP address, which can be configured only in one partition.
 
+## Install AS3 Extension
+
+Before we can install the AS3 extension at the BIG-IP, we need to download the install package. You can find the extension [here](https://github.com/F5Networks/f5-appsvcs-extension/releases). 
+
+Be aware, that the path will change over time:
+```
+cd files/
+
+Long Time Supported version:
+wget https://github.com/F5Networks/f5-appsvcs-extension/releases/download/v3.13.2/f5-appsvcs-3.13.2-1.noarch.rpm
+
+Latest version:
+wget https://github.com/F5Networks/f5-appsvcs-extension/releases/download/v3.19.0/f5-appsvcs-3.19.0-4.noarch.rpm
+```
+
+Please adapt the AS3Version variable at the playbook/AS3_install.yaml playbook.
+
+Next you can install the package on the target BIG-IP:
+
+```
+ansible-playbook AS3_install.yaml -e target=f5
+```
 
